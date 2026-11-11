@@ -31,13 +31,18 @@ ApplicationWindow {
     // todayTotal only re-evaluates on a step event; after midnight the ring
     // would keep yesterday's number until the first step. Re-read it when
     // the date changes.
-    property int today: stepsLoader.todayTotal
+    property int today: testValue.value > 0 ? testValue.value : stepsLoader.todayTotal
+    // debug: a non-zero value is shown instead of the live count
+    ConfigurationValue {
+        id: testValue
+        key: "/apps/harbour-steps/testValue"
+        defaultValue: 0
+    }
     Timer {
         interval: 30000; running: Qt.application.active; repeat: true
         property int day: new Date().getDate()
-        onTriggered: { var d = new Date().getDate(); if (d !== day) { day = d; app.today = stepsLoader.getTodayTotal() } }
+        onTriggered: { var d = new Date().getDate(); if (d !== day) { day = d; app.today = Qt.binding(function() { return testValue.value > 0 ? testValue.value : stepsLoader.getTodayTotal() }) } }
     }
-    Connections { target: stepsLoader; onTodayTotalChanged: app.today = stepsLoader.todayTotal }
 
     initialPage: Component { MainPage { } }
     cover: Component { CoverPage { } }

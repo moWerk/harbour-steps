@@ -27,12 +27,14 @@ Column {
         trackColor: Theme.rgba(badge.color, Theme.opacityFaint)
 
         Label {
+            id: number
             anchors.centerIn: parent
             width: parent.width - Theme.paddingMedium
             horizontalAlignment: Text.AlignHCenter
             text: Number(badge.value).toLocaleString(Qt.locale(), "f", 0)
-            font.pixelSize: badge.numberSize
-            fontSizeMode: Text.HorizontalFit
+            // Sail Sans digits are about 0.58 em wide; a separator less. Size the font
+            // so the whole number fits the chord through the centre, never above numberSize.
+            font.pixelSize: Math.max(Theme.fontSizeTiny, Math.min(badge.numberSize, width / (0.58 * text.length)))
             color: badge.color
         }
     }

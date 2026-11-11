@@ -31,6 +31,14 @@ SettingsControl {
         defaultValue: 8000
     }
 
+    // debug: a non-zero value is shown instead of the live count (dconf write, no restart)
+    ConfigurationValue {
+        id: testValue
+        key: "/apps/harbour-steps/testValue"
+        defaultValue: 0
+    }
+    readonly property int shown: testValue.value > 0 ? testValue.value : today
+
     StepsDataLoader {
         id: steps
     }
@@ -56,7 +64,7 @@ SettingsControl {
         height: Theme.itemSizeSmall
 
         readonly property real lineWidth: Theme.paddingSmall * 0.75
-        readonly property real fraction: goal.value > 0 ? Math.min(root.today / goal.value, 1) : 0
+        readonly property real fraction: goal.value > 0 ? Math.min(root.shown / goal.value, 1) : 0
 
         onFractionChanged: canvas.requestPaint()
 
@@ -90,9 +98,10 @@ SettingsControl {
             anchors.centerIn: parent
             width: parent.width - 2 * ring.lineWidth - Theme.paddingSmall
             horizontalAlignment: Text.AlignHCenter
-            text: Number(root.today).toLocaleString(Qt.locale(), "f", 0)
-            font.pixelSize: Theme.fontSizeSmall
-            fontSizeMode: Text.HorizontalFit
+            text: Number(root.shown).toLocaleString(Qt.locale(), "f", 0)
+            // Sail Sans digits are about 0.58 em wide: size the font so the number fits
+            // the chord through the centre, at most fontSizeSmall (three digits).
+            font.pixelSize: Math.max(Theme.fontSizeTiny * 0.8, Math.min(Theme.fontSizeSmall, width / (0.58 * text.length)))
             color: root.ringColor
         }
     }

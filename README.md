@@ -28,6 +28,24 @@ Because of the daemon and the top menu entry the package is for Chum and OpenRep
 the Jolla Store, and the app runs without the sandbox (the log is in the daemon's
 directory).
 
+## Devices
+
+Tested 2026-11-11. The test for any device: install, then `journalctl -u sensorfwd` after
+the restart; `HYBRIS CTL invalid sensor type: 19` means the HAL has no step counter and
+nothing can be done in software. The vendor's `android.hardware.sensor.stepcounter.xml`
+says nothing (both Sonys below ship it).
+
+| Device | Sailfish OS | HAL step counter | Result |
+|---|---|---|---|
+| Jolla Phone 2026 | 5.2.0.22 | MediaTek SCP hub, `step_count` | works, batches every 5 s, counts while asleep |
+| F(x)tec Pro¹-X (hybris port) | 5.1.0.11 | Qualcomm SSC pedometer | works, one event per step in batches ~37 s apart |
+| Jolla C2 | 5.2.0.22 | Unisoc hub, listed | sensor opens, no events seen yet |
+| Sony Xperia XA2 | 5.1.0.11 | none (sensors@1.0) | no |
+| Sony Xperia X | 4.6.0.15 | none | no |
+
+Debug: `dconf write /apps/harbour-steps/testValue 12345` shows that number in the app, the
+cover and the top menu item instead of the live count (0 switches it off).
+
 ## Authorship
 
 Written by an LLM (Claude), directed and tested by the author on a Jolla Phone 2026.
