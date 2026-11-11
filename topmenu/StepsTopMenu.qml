@@ -3,11 +3,12 @@ import Sailfish.Silica 1.0
 import com.jolla.settings 1.0
 import Nemo.Configuration 1.0
 import org.asteroid.sensorlogd 1.0
+import org.nemomobile.lipstick 0.1
 
 // Today's steps in the top menu, laid out like a SettingsToggle: the goal
 // ring where the toggle has its circle, the count inside it, "Steps" below.
 // The count is live from sensorfw through sensorlogd's loader; the goal is
-// the app's dconf key. A tap asks the daemon to write a record.
+// the app's dconf key. A tap opens the app.
 SettingsControl {
     id: root
 
@@ -17,7 +18,12 @@ SettingsControl {
 
     readonly property color ringColor: highlighted ? Theme.highlightColor : Theme.primaryColor
 
-    onClicked: steps.triggerDaemonRecording()
+    onClicked: launcher.launchApplication()
+
+    LauncherItem {
+        id: launcher
+        filePath: "/usr/share/applications/harbour-steps.desktop"
+    }
 
     ConfigurationValue {
         id: goal
@@ -28,6 +34,15 @@ SettingsControl {
     StepsDataLoader {
         id: steps
     }
+
+    // todayTotal only re-evaluates on a step event; re-read it when the date changes
+    property int today: steps.todayTotal
+    Timer {
+        interval: 30000; running: true; repeat: true
+        property int day: new Date().getDate()
+        onTriggered: { var d = new Date().getDate(); if (d !== day) { day = d; root.today = steps.getTodayTotal() } }
+    }
+    Connections { target: steps; onTodayTotalChanged: root.today = steps.todayTotal }
 
     Item {
         id: ring
@@ -41,7 +56,7 @@ SettingsControl {
         height: Theme.itemSizeSmall
 
         readonly property real lineWidth: Theme.paddingSmall * 0.75
-        readonly property real fraction: goal.value > 0 ? Math.min(steps.todayTotal / goal.value, 1) : 0
+        readonly property real fraction: goal.value > 0 ? Math.min(root.today / goal.value, 1) : 0
 
         onFractionChanged: canvas.requestPaint()
 
@@ -75,7 +90,7 @@ SettingsControl {
             anchors.centerIn: parent
             width: parent.width - 2 * ring.lineWidth - Theme.paddingSmall
             horizontalAlignment: Text.AlignHCenter
-            text: Number(steps.todayTotal).toLocaleString(Qt.locale(), "f", 0)
+            text: Number(root.today).toLocaleString(Qt.locale(), "f", 0)
             font.pixelSize: Theme.fontSizeSmall
             fontSizeMode: Text.HorizontalFit
             color: root.ringColor

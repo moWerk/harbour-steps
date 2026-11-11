@@ -10,7 +10,7 @@ CoverBackground {
         width: parent.width
         size: parent.width * 0.62
         lineWidth: Theme.paddingMedium
-        value: app.steps.todayTotal
+        value: app.today
         goal: app.goal
         numberSize: Theme.fontSizeLarge
         labelSize: Theme.fontSizeSmall

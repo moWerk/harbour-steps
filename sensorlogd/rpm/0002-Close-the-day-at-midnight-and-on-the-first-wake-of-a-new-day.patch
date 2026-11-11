@@ -1,0 +1,104 @@
+Close the day at midnight and on the first wake of a new day; read the current
+count before the first event
+
+The date change was handled only inside the next interval recording, so the
+live total (sensor minus offset) carried the old day into the new one for up
+to ten minutes, and a phone asleep across midnight rolled over only at its
+first record after waking. A single-shot timer to 00:00:01 forces a recording
+(the rollover) and re-arms; timeUpdate(), which runs on every display-on,
+records at once when the date has changed.
+
+A new sensorfw session sees no value until the next step event; a loader that
+had just started showed the last log record instead of the live count. Until
+the first event steps() reads the sensor's D-Bus property, which carries the
+current value for every session.
+
+diff -ru /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream/daemon/sensorPlugins/stepCounter.cpp ./daemon/sensorPlugins/stepCounter.cpp
+--- /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream/daemon/sensorPlugins/stepCounter.cpp	2026-10-30 12:26:56.036714896 +0100
++++ ./daemon/sensorPlugins/stepCounter.cpp	2026-11-11 02:13:22.984488332 +0100
+@@ -37,6 +37,13 @@
+     connect(recordIntervalTimer, SIGNAL(timeout()), this, SLOT(triggerRecording()));
+     recordIntervalTimer->setSingleShot(true);
+     recordIntervalTimer->start(interval);
++    // The day changes at 00:00, not at the next interval recording: without this the
++    // live total (sensor minus offset) carries yesterday's steps into the new day until
++    // the next record, up to the whole interval.
++    midnightTimer = new QTimer(this);
++    midnightTimer->setSingleShot(true);
++    connect(midnightTimer, SIGNAL(timeout()), this, SLOT(midnight()));
++    armMidnightTimer();
+     QDateTime currDateTime = QDateTime::currentDateTime();
+ 
+     setupFilePath(sensorPathPrefix);
+@@ -64,12 +71,29 @@
+     m_settings->setValue("StepCounterPrivate/stepsOffset", m_stepsOffset);
+ }
+ 
++void StepCounterPlugin::armMidnightTimer()
++{
++    // Timers do not run in suspend; a wake after midnight is caught by timeUpdate().
++    QDateTime next(QDate::currentDate().addDays(1), QTime(0, 0, 1));
++    midnightTimer->start(QDateTime::currentDateTime().msecsTo(next));
++}
++
++void StepCounterPlugin::midnight()
++{
++    qDebug() << "midnight: closing the day";
++    triggerRecording();
++    armMidnightTimer();
++}
++
+ void StepCounterPlugin::timeUpdate()
+ {
+     QDateTime currDateTime = QDateTime::currentDateTime();
+     uint elapsed = currDateTime.toMSecsSinceEpoch() - lastRecordTime.toMSecsSinceEpoch();
+     qDebug() << "time until next steps recording" << recordIntervalTimer->remainingTime() << " elapsed = " << elapsed << " lastRecordTime " << lastRecordTime.toMSecsSinceEpoch();
+-    if (elapsed > interval) { // if too much time has passed, reset the timer and record
++    if (lastRecordTime.date() != QDate::currentDate()) { // woke up on a new day: close the old one now
++        triggerRecording();
++        armMidnightTimer();
++    } else if (elapsed > interval) { // if too much time has passed, reset the timer and record
+         triggerRecording();
+     } else { // otherwise, restart the timer and compensate for time spent in suspend
+         recordIntervalTimer->start(interval - elapsed);
+diff -ru /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream/daemon/sensorPlugins/stepCounter.h ./daemon/sensorPlugins/stepCounter.h
+--- /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream/daemon/sensorPlugins/stepCounter.h	2026-10-30 12:26:56.035598734 +0100
++++ ./daemon/sensorPlugins/stepCounter.h	2026-11-11 02:13:22.984368118 +0100
+@@ -30,10 +30,16 @@
+ public slots:
+     void triggerRecording();
+ 
++private slots:
++    void midnight();
++
+ private:
++    void armMidnightTimer();
++
+     QDateTime lastRecordTime;
+     int interval;
+     QTimer *recordIntervalTimer;
++    QTimer *midnightTimer;
+     StepSource *stepcounterSensor;
+     int m_lastRawSteps = 0;
+     int m_stepsOffset = 0;
+Nur in /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream: .gitignore.
+diff -ru /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream/stepsource.h ./stepsource.h
+--- /mnt/storage/sailfish/pro1x-mainline/port/packages/sensorlogd/upstream/stepsource.h	2026-10-30 12:27:12.371687349 +0100
++++ ./stepsource.h	2026-11-11 02:18:39.016725638 +0100
+@@ -50,7 +50,15 @@
+         m_iface->start();
+     }
+     bool isActive() const { return m_active; }
+-    int steps() const { return m_steps; }
++    /* Until the first event of this session the sensor's current value comes from its
++     * D-Bus property: the sensor is an on-change one, a new session would otherwise read 0
++     * until the next step (and a loader that just started would show the last log record). */
++    int steps() const
++    {
++        if (!m_active && m_iface)
++            return m_iface->steps().x();
++        return m_steps;
++    }
+ 
+ signals:
+     void stepsChanged();

@@ -28,6 +28,17 @@ ApplicationWindow {
         id: stepsLoader
     }
 
+    // todayTotal only re-evaluates on a step event; after midnight the ring
+    // would keep yesterday's number until the first step. Re-read it when
+    // the date changes.
+    property int today: stepsLoader.todayTotal
+    Timer {
+        interval: 30000; running: Qt.application.active; repeat: true
+        property int day: new Date().getDate()
+        onTriggered: { var d = new Date().getDate(); if (d !== day) { day = d; app.today = stepsLoader.getTodayTotal() } }
+    }
+    Connections { target: stepsLoader; onTodayTotalChanged: app.today = stepsLoader.todayTotal }
+
     initialPage: Component { MainPage { } }
     cover: Component { CoverPage { } }
     allowedOrientations: defaultAllowedOrientations

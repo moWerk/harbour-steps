@@ -11,7 +11,7 @@ Page {
         var today = new Date()
         for (var i = 0; i < 30; i++) {
             var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i)
-            var total = i === 0 ? app.steps.todayTotal : app.steps.getTotalForDate(d)
+            var total = i === 0 ? app.today : app.steps.getTotalForDate(d)
             if (i === 0 || total > 0) {
                 history.append({ day: d, total: total })
             }
@@ -31,7 +31,7 @@ Page {
     Connections {
         target: app.steps
         onDataChanged: page.reloadHistory()
-        onTodayTotalChanged: if (history.count > 0) history.setProperty(0, "total", app.steps.todayTotal)
+        onTodayTotalChanged: if (history.count > 0) history.setProperty(0, "total", app.today)
     }
 
     // Midnight: the top row becomes yesterday
@@ -57,7 +57,7 @@ Page {
                 width: parent.width
                 size: Math.min(page.width, page.height) * 0.55
                 lineWidth: Theme.paddingLarge
-                value: app.steps.todayTotal
+                value: app.today
                 goal: app.goal
                 numberSize: Theme.fontSizeHuge * 1.3
                 labelSize: Theme.fontSizeLarge
@@ -74,7 +74,7 @@ Page {
                 value: app.goal
                 label: qsTr("Daily goal")
                 valueText: Number(sliderValue).toLocaleString(Qt.locale(), "f", 0) + " " + qsTr("steps")
-                          + " (" + Math.round(100 * app.steps.todayTotal / sliderValue) + " %)"
+                          + " (" + Math.round(100 * app.today / sliderValue) + " %)"
                 onReleased: app.goal = sliderValue
             }
 
