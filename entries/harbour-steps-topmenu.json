@@ -1,0 +1,14 @@
+{
+    "entries": [
+        {
+            "path": "system_settings/look_and_feel/topmenu/harbour-steps/steps",
+            "type": "custom",
+            "title": "Steps",
+            "icon": "image://theme/harbour-steps",
+            "params": {
+                "source": "/usr/share/harbour-steps/topmenu/StepsTopMenu.qml",
+                "type": "grid"
+            }
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=harbour-steps
+Exec=harbour-steps
+Name=Steps
+Comment=Today's steps against your goal
+X-Nemo-Single-Instance=yes
+
+[X-Sailjail]
+# The step log lives in sensorlogd's directory (~/.asteroid-sensorlogd) and
+# the live count comes from sensorfw; neither is reachable from the sandbox.
+Sandboxing=Disabled

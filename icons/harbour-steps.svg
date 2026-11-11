@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 172 172" width="172" height="172">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1b6fb8"/><stop offset="1" stop-color="#0b2d5c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="86" cy="86" r="84" fill="url(#g)"/>
+  <!-- goal ring: track and a three-quarter arc -->
+  <circle cx="86" cy="86" r="62" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="12"/>
+  <path d="M 86 24 A 62 62 0 1 1 24 86" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <!-- two footprints -->
+  <g fill="#ffffff">
+    <ellipse cx="72" cy="92" rx="9" ry="14" transform="rotate(-15 72 92)"/>
+    <ellipse cx="68" cy="112" rx="7" ry="5" transform="rotate(-15 68 112)"/>
+    <ellipse cx="102" cy="74" rx="9" ry="14" transform="rotate(15 102 74)"/>
+    <ellipse cx="106" cy="94" rx="7" ry="5" transform="rotate(15 106 94)"/>
+  </g>
+</svg>
