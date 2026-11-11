@@ -17,6 +17,8 @@ DISTFILES += qml/harbour-steps.qml \
     topmenu/*.qml \
     entries/*.json \
     rpm/harbour-steps.spec \
-    harbour-steps.desktop
+    harbour-steps.desktop \
+    sensorfw/*.conf \
+    tools/*.sh
 
 SAILFISHAPP_ICONS = 86x86 108x108 128x128 172x172

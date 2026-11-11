@@ -53,40 +53,14 @@ Page {
 
             PageHeader { title: qsTr("Steps") }
 
-            StepRing {
-                id: ring
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Math.min(page.width, page.height) * 0.55
+            StepBadge {
+                width: parent.width
+                size: Math.min(page.width, page.height) * 0.55
                 lineWidth: Theme.paddingLarge
                 value: app.steps.todayTotal
                 goal: app.goal
-
-                Column {
-                    anchors.centerIn: parent
-                    width: parent.width
-                    Label {
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        text: Number(app.steps.todayTotal).toLocaleString(Qt.locale(), "f", 0)
-                        font.pixelSize: Theme.fontSizeHuge * 1.3
-                        color: Theme.highlightColor
-                        fontSizeMode: Text.HorizontalFit
-                    }
-                    Label {
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        text: qsTr("of %1").arg(Number(app.goal).toLocaleString(Qt.locale(), "f", 0))
-                        font.pixelSize: Theme.fontSizeMedium
-                        color: Theme.secondaryHighlightColor
-                    }
-                    Label {
-                        width: parent.width
-                        horizontalAlignment: Text.AlignHCenter
-                        text: Math.round(100 * app.steps.todayTotal / app.goal) + " %"
-                        font.pixelSize: Theme.fontSizeSmall
-                        color: Theme.secondaryColor
-                    }
-                }
+                numberSize: Theme.fontSizeHuge * 1.3
+                labelSize: Theme.fontSizeLarge
             }
 
             Item { width: 1; height: Theme.paddingLarge }
@@ -100,6 +74,7 @@ Page {
                 value: app.goal
                 label: qsTr("Daily goal")
                 valueText: Number(sliderValue).toLocaleString(Qt.locale(), "f", 0) + " " + qsTr("steps")
+                          + " (" + Math.round(100 * app.steps.todayTotal / sliderValue) + " %)"
                 onReleased: app.goal = sliderValue
             }
 

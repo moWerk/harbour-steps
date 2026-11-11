@@ -9,10 +9,17 @@ sensor), and [sensorlogd](https://github.com/AsteroidOS/asteroid-sensorlogd) by 
 Movshev, ported to sensorfw, keeps the counter open and logs each day. Steps reads
 the daemon's log and the live count from its QML module `org.asteroid.sensorlogd`.
 
-Needs: `sensorlogd` (the Sailfish OS build), and a device whose sensorfw has a step
-counter adaptor enabled (`stepcountersensor=True` in `/etc/sensorfw/sensord.conf.d/`,
-`stepcounteradaptor = hybrisstepcounteradaptor` on hybris devices with an Android HAL
-step counter). First used on the Jolla Phone 2026 (MediaTek SCP hub).
+Needs `sensorlogd` (the Sailfish OS build, RPM attached to the releases; its source is
+the `packages/sensorlogd` directory of
+[sailfishos-pro1x-mainline](https://github.com/moWerk/sailfishos-pro1x-mainline)) and a
+device whose Android HAL has a step counter. The package ships
+`/etc/sensorfw/sensord.conf.d/90-harbour-steps.conf`, which switches sensorfw's step
+counter sensor on through the hybris adaptor, and restarts sensorfwd once on install.
+Whether the HAL has one: as root,
+`/system/bin/dumpsys android.hardware.sensors.ISensors/default | grep -i step` on an AIDL
+HAL, `lshal debug android.hardware.sensors@2.1::ISensors/default` on a HIDL one. First
+used on the Jolla Phone 2026, whose MediaTek SCP hub counts while the phone sleeps and
+hands the count over in batches.
 
 Top menu: Settings > Top menu > add "Steps". The item is installed as
 `/usr/share/jolla-settings/entries/harbour-steps-topmenu.json`; lipstick picks it up at

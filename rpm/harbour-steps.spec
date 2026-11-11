@@ -3,13 +3,14 @@ Summary:    Steps, a step counter
 Version:    0.1.0
 Release:    1
 License:    GPLv3+
-URL:        https://github.com/moWerk/steps
+URL:        https://github.com/moWerk/harbour-steps
 Source0:    %{name}-%{version}.tar.bz2
 Requires:   sailfishsilica-qt5 >= 0.10.9
 Requires:   libsailfishapp-launcher
 Requires:   nemo-qml-plugin-configuration-qt5
 # the daemon that keeps the counter open and logs the days, with its QML module
 Requires:   sensorlogd
+Requires:   sensorfw-qt5
 BuildRequires:  pkgconfig(sailfishapp) >= 1.0.2
 BuildRequires:  pkgconfig(Qt5Core)
 BuildRequires:  pkgconfig(Qt5Qml)
@@ -30,8 +31,8 @@ Categories:
  - Utility
 PackagerName: moWerk
 Custom:
-  Repo: https://github.com/moWerk/steps
-Icon: https://raw.githubusercontent.com/moWerk/steps/main/icons/172x172/harbour-steps.png
+  Repo: https://github.com/moWerk/harbour-steps
+Icon: https://raw.githubusercontent.com/moWerk/harbour-steps/main/icons/172x172/harbour-steps.png
 %endif
 
 %prep
@@ -46,10 +47,22 @@ Icon: https://raw.githubusercontent.com/moWerk/steps/main/icons/172x172/harbour-
 # top menu item: the settings entry and its QML
 install -D -m 644 entries/harbour-steps-topmenu.json %{buildroot}%{_datadir}/jolla-settings/entries/harbour-steps-topmenu.json
 install -D -m 644 topmenu/StepsTopMenu.qml %{buildroot}%{_datadir}/%{name}/topmenu/StepsTopMenu.qml
+# sensorfw: enable the step counter sensor on hybris devices
+install -D -m 644 sensorfw/90-harbour-steps.conf %{buildroot}%{_sysconfdir}/sensorfw/sensord.conf.d/90-harbour-steps.conf
 desktop-file-install --delete-original --dir %{buildroot}%{_datadir}/applications %{buildroot}%{_datadir}/applications/*.desktop
+
+%post
+# sensorfwd reads its config at start; pick the step counter up now
+systemctl try-restart sensorfwd.service >/dev/null 2>&1 || :
+
+%postun
+if [ $1 -eq 0 ]; then
+    systemctl try-restart sensorfwd.service >/dev/null 2>&1 || :
+fi
 
 %files
 %defattr(-,root,root,-)
+%config %{_sysconfdir}/sensorfw/sensord.conf.d/90-harbour-steps.conf
 %{_bindir}/%{name}
 %{_datadir}/%{name}
 %{_datadir}/applications/%{name}.desktop

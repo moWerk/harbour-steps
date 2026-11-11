@@ -4,15 +4,18 @@ import com.jolla.settings 1.0
 import Nemo.Configuration 1.0
 import org.asteroid.sensorlogd 1.0
 
-// Today's steps in the top menu: "steps" and the count on two lines inside
-// the goal ring. The count is live from sensorfw through sensorlogd's loader;
-// the goal is the app's dconf key. A tap asks the daemon to write a record.
+// Today's steps in the top menu, laid out like a SettingsToggle: the goal
+// ring where the toggle has its circle, the count inside it, "Steps" below.
+// The count is live from sensorfw through sensorlogd's loader; the goal is
+// the app's dconf key. A tap asks the daemon to write a record.
 SettingsControl {
     id: root
 
     name: "Steps"
-    contentHeight: ring.height + 2 * Theme.paddingSmall
+    contentHeight: label.y + label.height + Theme.paddingSmall
     _showPress: false
+
+    readonly property color ringColor: highlighted ? Theme.highlightColor : Theme.primaryColor
 
     onClicked: steps.triggerDaemonRecording()
 
@@ -29,16 +32,23 @@ SettingsControl {
     Item {
         id: ring
 
-        anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; topMargin: Theme.paddingSmall }
-        width: Theme.itemSizeSmall + Theme.paddingLarge
-        height: width
+        anchors {
+            horizontalCenter: parent.horizontalCenter
+            top: parent.top
+            topMargin: Theme.paddingSmall
+        }
+        width: Theme.itemSizeSmall
+        height: Theme.itemSizeSmall
 
-        readonly property real lineWidth: Theme.paddingSmall
+        readonly property real lineWidth: Theme.paddingSmall * 0.75
         readonly property real fraction: goal.value > 0 ? Math.min(steps.todayTotal / goal.value, 1) : 0
-        readonly property color arcColor: root.highlighted ? Theme.highlightColor : Theme.primaryColor
 
         onFractionChanged: canvas.requestPaint()
-        onArcColorChanged: canvas.requestPaint()
+
+        Connections {
+            target: root
+            onRingColorChanged: canvas.requestPaint()
+        }
 
         Canvas {
             id: canvas
@@ -51,34 +61,40 @@ SettingsControl {
                 var r = c - ring.lineWidth / 2
                 ctx.lineWidth = ring.lineWidth
                 ctx.lineCap = "round"
-                ctx.strokeStyle = Theme.rgba(Theme.primaryColor, Theme.opacityFaint)
+                ctx.strokeStyle = Theme.rgba(root.ringColor, Theme.opacityFaint)
                 ctx.beginPath(); ctx.arc(c, c, r, 0, 2 * Math.PI); ctx.stroke()
                 if (ring.fraction > 0) {
                     var start = -Math.PI / 2
-                    ctx.strokeStyle = ring.arcColor
+                    ctx.strokeStyle = root.ringColor
                     ctx.beginPath(); ctx.arc(c, c, r, start, start + 2 * Math.PI * ring.fraction); ctx.stroke()
                 }
             }
         }
 
-        Column {
+        Label {
             anchors.centerIn: parent
             width: parent.width - 2 * ring.lineWidth - Theme.paddingSmall
-            Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: "steps"
-                font.pixelSize: Theme.fontSizeTiny
-                color: root.highlighted ? Theme.secondaryHighlightColor : Theme.secondaryColor
-            }
-            Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: Number(steps.todayTotal).toLocaleString(Qt.locale(), "f", 0)
-                font.pixelSize: Theme.fontSizeSmall
-                fontSizeMode: Text.HorizontalFit
-                color: root.highlighted ? Theme.highlightColor : Theme.primaryColor
-            }
+            horizontalAlignment: Text.AlignHCenter
+            text: Number(steps.todayTotal).toLocaleString(Qt.locale(), "f", 0)
+            font.pixelSize: Theme.fontSizeSmall
+            fontSizeMode: Text.HorizontalFit
+            color: root.ringColor
         }
+    }
+
+    Label {
+        id: label
+
+        anchors {
+            horizontalCenter: parent.horizontalCenter
+            top: ring.bottom
+            topMargin: Theme.paddingSmall
+        }
+        width: root.width - Theme.paddingMedium * 2
+        horizontalAlignment: implicitWidth > width ? Text.AlignLeft : Text.AlignHCenter
+        truncationMode: TruncationMode.Fade
+        text: root.name
+        font.pixelSize: Theme.fontSizeTiny
+        color: root.ringColor
     }
 }

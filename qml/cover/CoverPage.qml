@@ -5,31 +5,14 @@ import "../components"
 CoverBackground {
     id: cover
 
-    StepRing {
+    StepBadge {
         anchors.centerIn: parent
-        width: parent.width * 0.7
+        width: parent.width
+        size: parent.width * 0.62
         lineWidth: Theme.paddingMedium
         value: app.steps.todayTotal
         goal: app.goal
-
-        Column {
-            anchors.centerIn: parent
-            width: parent.width
-            Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: qsTr("steps")
-                font.pixelSize: Theme.fontSizeSmall
-                color: Theme.secondaryHighlightColor
-            }
-            Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: Number(app.steps.todayTotal).toLocaleString(Qt.locale(), "f", 0)
-                font.pixelSize: Theme.fontSizeLarge
-                fontSizeMode: Text.HorizontalFit
-                color: Theme.highlightColor
-            }
-        }
+        numberSize: Theme.fontSizeLarge
+        labelSize: Theme.fontSizeSmall
     }
 }
